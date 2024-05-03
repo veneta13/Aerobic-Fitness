@@ -1,0 +1,64 @@
+---
+title: "Aerobic Fitness"
+output: html_notebook
+---
+
+The goal is to develop an equation to predict fitness (measured by the ability to consume oxygen) based on exercise tests rather than on expensive and cumbersome oxygen consumption measurements. These measurements were made on men involved in a physical fitness course.
+
+The variables are:
+Age (years),
+Weight (kg), 
+Oxygen - oxygen intake rate (ml per kg body weight per minute), 
+RunTime - time to run 1.5 miles (minutes), 
+RestPulse - heart rate while resting, 
+RunPulse - heart rate while running (same time oxygen rate measured), 
+MaxPulse - and maximum heart rate recorded while running. 
+
+```{r}
+library("sas7bdat")
+library(corrplot)
+```
+
+
+```{r}
+data <- read.sas7bdat("fitness.sas7bdat")
+head(data)
+```
+
+```{r}
+summary(data)
+```
+
+```{r}
+sum(is.na(data))
+```
+
+
+```{r}
+for (col_name in names(data)) {
+  hist(
+    data[[col_name]], 
+    main=paste(col_name, "Frequency"), 
+    xlab=col_name
+  )
+}
+```
+
+```{r}
+corrplot(cor(data), method = 'number')
+```
+
+```{r}
+for (col_name in names(data)) {
+  if (col_name != "Oxygen") {
+    plot(
+      data[[col_name]], 
+      data[["Oxygen"]], 
+      xlab=col_name, 
+      ylab="Oxygen",
+      main=paste(col_name, "vs Oxygen"))
+  }
+}
+```
+
+

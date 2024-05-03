@@ -1,22 +1,36 @@
 ---
 title: "Aerobic Fitness"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 The goal is to develop an equation to predict fitness (measured by the ability to consume oxygen) based on exercise tests rather than on expensive and cumbersome oxygen consumption measurements. These measurements were made on men involved in a physical fitness course.
 
 The variables are:
-Age (years),
-Weight (kg), 
-Oxygen - oxygen intake rate (ml per kg body weight per minute), 
-RunTime - time to run 1.5 miles (minutes), 
-RestPulse - heart rate while resting, 
-RunPulse - heart rate while running (same time oxygen rate measured), 
-MaxPulse - and maximum heart rate recorded while running. 
+
+- **Age** (years),
+
+- **Weight** (kg), 
+
+- **Oxygen** - oxygen intake rate (ml per kg body weight per minute), 
+
+- **RunTime** - time to run 1.5 miles (minutes), 
+
+- **RestPulse** - heart rate while resting, 
+
+- **RunPulse** - heart rate while running (same time oxygen rate measured), 
+
+- **MaxPulse** - and maximum heart rate recorded while running. 
+
+
+## Exploratory Data Analysis
 
 ```{r}
 library("sas7bdat")
 library(corrplot)
+library(lmtest)
+library(car)
 ```
 
 
@@ -30,11 +44,32 @@ summary(data)
 ```
 
 ```{r}
+op <- par(mfrow=c(2, 4))
+
+for (col_name in names(data)) {
+  boxplot(
+    data[[col_name]], 
+    main=paste("Boxplot of", col_name), 
+    xlab=col_name, 
+    horizontal=F
+  )
+}
+```
+
+
+```{r}
 sum(is.na(data))
 ```
 
 
 ```{r}
+pairs(data)
+```
+
+
+```{r}
+op <- par(mfrow=c(2, 4))
+
 for (col_name in names(data)) {
   hist(
     data[[col_name]], 
@@ -49,6 +84,8 @@ corrplot(cor(data), method = 'number')
 ```
 
 ```{r}
+op <- par(mfrow=c(2, 3))
+
 for (col_name in names(data)) {
   if (col_name != "Oxygen") {
     plot(
@@ -60,5 +97,240 @@ for (col_name in names(data)) {
   }
 }
 ```
+
+## Models
+
+### Intercept-only Model
+
+```{r}
+model_1 <- lm(Oxygen ~ 1, data=data)
+
+summary(model_1)
+```
+
+```{r}
+plot(Oxygen ~ 1, data=data)
+abline(model_1)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_1)
+```
+
+
+### RunTime Model
+
+```{r}
+model_2 <- lm(Oxygen ~ RunTime, data=data)
+
+summary(model_2)
+```
+
+```{r}
+plot(Oxygen ~ RunTime, data=data)
+abline(model_2)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_2)
+```
+
+
+
+
+### RunTime and RestPulse Model
+
+```{r}
+model_3 <- lm(Oxygen ~ RunTime + RestPulse, data=data)
+
+summary(model_3)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_3)
+```
+
+### RunTime and RunPulse Model
+
+```{r}
+model_4 <- lm(Oxygen ~ RunTime + RunPulse, data=data)
+
+summary(model_4)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_4)
+```
+
+### RunTime and Age Model
+
+```{r}
+model_5 <- lm(Oxygen ~ RunTime + Age, data=data)
+
+summary(model_5)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_5)
+```
+
+The red line in the Scale-Location plot is not horizontal (can be a sign of _heteroscedasticity_).
+
+
+### RunTime and MaxPulse Model
+
+```{r}
+model_6 <- lm(Oxygen ~ RunTime + MaxPulse, data=data)
+
+summary(model_6)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_6)
+```
+
+### RunTime, RunPulse and Weight Model
+
+```{r}
+model_7 <- lm(Oxygen ~ RunTime + RunPulse + Weight, data=data)
+
+summary(model_7)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_7)
+```
+
+### RunTime, RunPulse and Age Model
+
+```{r}
+model_8 <- lm(Oxygen ~ RunTime + RunPulse + Age, data=data)
+
+summary(model_8)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_8)
+```
+
+### RunTime, RunPulse and MaxPulse Model
+
+```{r}
+model_9 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse, data=data)
+
+summary(model_9)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_9)
+```
+
+
+
+
+
+
+### RunTime, RunPulse, MaxPulse and Age Model
+
+```{r}
+model_10 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse + Age, data=data)
+
+summary(model_10)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_10)
+```
+
+```{r}
+anova(model_10)
+```
+
+
+### RunTime, RunPulse, $e^{MaxPulse}$ and Age Model
+
+```{r}
+data$exp_MaxPulse <- exp(data$MaxPulse)
+
+model_11 <- lm(Oxygen ~ RunTime + exp_MaxPulse + RunPulse + Age, data=data)
+summary(model_11)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_11)
+```
+
+```{r}
+anova(model_11)
+```
+
+## Testing the Regression Assumptions
+
+```{r}
+model <- model_11
+```
+
+### Breusch-Pagan Test
+
+```{r}
+bptest(model)
+```
+
+$H_0$: the residuals are homoscedastic
+
+$H_A$: the residuals are heteroscedastic
+
+The p-value is greater than 0.05, so we fail to reject the null hypothesis. Therefore, the assumption for **homoscedasticity** holds.
+
+
+### Durbin-Watson Test
+
+```{r}
+dwtest(model)
+```
+
+$H_0$: the autocorrelation is 0
+
+$H_A$: the autocorrelation is greater than 0
+
+The p-value is greater than 0.05, so we fail to reject the null hypothesis. Therefore, there is **no evidence of autocorrelation**.
+
+### Variance Inflation Factors
+
+```{r}
+vif(model)
+```
+
+There is **no multicollinearity** between the predictors.
+
+### Shapiro Test
+
+```{r}
+shapiro.test(residuals(model))
+```
+$H_0$: the residuals are normally distributed
+
+$H_A$: the residuals are not normally distributed
+
+The p-value is greater than 0.05, so we fail to reject the null hypothesis. We can assume that the residuals are **normally distributed**.
+
+```{r}
+hist(
+  residuals(model),
+  xlab='Residuals'
+)
+```
+
 
 

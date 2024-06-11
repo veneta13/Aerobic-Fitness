@@ -21,16 +21,18 @@ The variables are:
 
 - **RunPulse** - heart rate while running (same time oxygen rate measured), 
 
-- **MaxPulse** - and maximum heart rate recorded while running. 
+- **MaxPulse** - maximum heart rate recorded while running. 
 
 
 ## Exploratory Data Analysis
 
 ```{r}
+
 library("sas7bdat")
 library(corrplot)
 library(lmtest)
 library(car)
+library(stargazer)
 ```
 
 
@@ -42,6 +44,7 @@ head(data)
 ```{r}
 summary(data)
 ```
+
 
 ```{r}
 op <- par(mfrow=c(2, 4))
@@ -74,6 +77,18 @@ for (col_name in names(data)) {
   hist(
     data[[col_name]], 
     main=paste(col_name, "Frequency"), 
+    xlab=col_name
+  )
+}
+```
+
+```{r}
+op <- par(mfrow=c(2, 4))
+
+for (col_name in names(data)) {
+  hist(
+    data[[col_name]] ** 2, 
+    main=paste(col_name, "² Frequency"), 
     xlab=col_name
   )
 }
@@ -126,6 +141,7 @@ model_2 <- lm(Oxygen ~ RunTime, data=data)
 
 summary(model_2)
 ```
+
 
 ```{r}
 plot(Oxygen ~ RunTime, data=data)
@@ -182,23 +198,24 @@ plot(model_5)
 The red line in the Scale-Location plot is not horizontal (can be a sign of _heteroscedasticity_).
 
 
-### RunTime and MaxPulse Model
+### RunTime and Weight Model
 
 ```{r}
-model_6 <- lm(Oxygen ~ RunTime + MaxPulse, data=data)
+model_6 <- lm(Oxygen ~ RunTime + Weight, data=data)
 
 summary(model_6)
 ```
+
 
 ```{r}
 par(mfrow = c(2,2))
 plot(model_6)
 ```
 
-### RunTime, RunPulse and Weight Model
+### RunTime and MaxPulse Model
 
 ```{r}
-model_7 <- lm(Oxygen ~ RunTime + RunPulse + Weight, data=data)
+model_7 <- lm(Oxygen ~ RunTime + MaxPulse, data=data)
 
 summary(model_7)
 ```
@@ -208,10 +225,10 @@ par(mfrow = c(2,2))
 plot(model_7)
 ```
 
-### RunTime, RunPulse and Age Model
+### RunTime, RunPulse and Weight Model
 
 ```{r}
-model_8 <- lm(Oxygen ~ RunTime + RunPulse + Age, data=data)
+model_8 <- lm(Oxygen ~ RunTime + RunPulse + Weight, data=data)
 
 summary(model_8)
 ```
@@ -221,10 +238,10 @@ par(mfrow = c(2,2))
 plot(model_8)
 ```
 
-### RunTime, RunPulse and MaxPulse Model
+### RunTime, RunPulse and Age Model
 
 ```{r}
-model_9 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse, data=data)
+model_9 <- lm(Oxygen ~ RunTime + RunPulse + Age, data=data)
 
 summary(model_9)
 ```
@@ -232,6 +249,19 @@ summary(model_9)
 ```{r}
 par(mfrow = c(2,2))
 plot(model_9)
+```
+
+### RunTime, RunPulse and MaxPulse Model
+
+```{r}
+model_10 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse, data=data)
+
+summary(model_10)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_10)
 ```
 
 
@@ -242,27 +272,8 @@ plot(model_9)
 ### RunTime, RunPulse, MaxPulse and Age Model
 
 ```{r}
-model_10 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse + Age, data=data)
+model_11 <- lm(Oxygen ~ RunTime + RunPulse + MaxPulse + Age, data=data)
 
-summary(model_10)
-```
-
-```{r}
-par(mfrow = c(2,2))
-plot(model_10)
-```
-
-```{r}
-anova(model_10)
-```
-
-
-### RunTime, RunPulse, $e^{MaxPulse}$ and Age Model
-
-```{r}
-data$exp_MaxPulse <- exp(data$MaxPulse)
-
-model_11 <- lm(Oxygen ~ RunTime + exp_MaxPulse + RunPulse + Age, data=data)
 summary(model_11)
 ```
 
@@ -275,10 +286,29 @@ plot(model_11)
 anova(model_11)
 ```
 
+
+### RunTime, RunPulse, $e^{MaxPulse}$ and Age Model
+
+```{r}
+data$exp_MaxPulse <- exp(data$MaxPulse)
+
+model_12 <- lm(Oxygen ~ RunTime + exp_MaxPulse + RunPulse + Age, data=data)
+summary(model_12)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model_12)
+```
+
+```{r}
+anova(model_12)
+```
+
 ## Testing the Regression Assumptions
 
 ```{r}
-model <- model_11
+model <- model_9
 ```
 
 ### Breusch-Pagan Test

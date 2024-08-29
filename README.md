@@ -1,14 +1,13 @@
-# Basketball Performance Clustering Analysis
+# Aerobic Fitness Prediction
 
-## Overview 🏀
-This project involves clustering analysis of basketball performance data. The dataset consists of various performance metrics for basketball players.
+## Overview 🏃🏻
+The goal of the project is to develop a predictive model for aerobic fitness, measured by the ability to consume oxygen, based on exercise tests. The dataset includes various measurements taken from men involved in a physical fitness course.
 
-## Methods
-- Principal Component Analysis (PCA)
-- t-Distributed Stochastic Neighbor Embedding (t-SNE)
-- Uniform Manifold Approximation and Projection (UMAP)
-- Clustering:
-  - K-Means Clustering
-  - Agglomerative Clustering
-  - DBSCAN
-  - HDBSCAN
+## Models
+We build several linear regression models to predict Oxygen based on different combinations of variables.
+
+Models are evaluated based on the coefficient of determination. The following regression assumptions are also tested:
+- Breusch-Pagan Test: Assesses homoscedasticity
+- Durbin-Watson Test: Checks for autocorrelation in residuals.
+- Variance Inflation Factors (VIF): Evaluates multicollinearity among predictors.
+- Shapiro Test: checks if the residuals are normally distributed
